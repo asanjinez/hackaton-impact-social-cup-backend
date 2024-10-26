@@ -21,7 +21,7 @@ class Event(models.Model):
     STATUS_CHOICES = [
         ("upcoming", "Próximo"),
         ("ongoing", "En Curso"),
-        ("completed", "Completado"),
+        ("completed", "Finalizado"),
         ("cancelled", "Cancelado"),
     ]
 
@@ -29,3 +29,34 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Task(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="tasks",
+    )
+    assignee = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="tasks",
+    )
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Reminder(models.Model):
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="reminders",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    date = models.DateTimeField()
