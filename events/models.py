@@ -15,13 +15,16 @@ class Event(models.Model):
     event_date = models.DateTimeField()
     location = models.CharField(max_length=200)
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="joined_events", blank=True
+        settings.AUTH_USER_MODEL,
+        through="Participant",
+        related_name="joined_events",
+        blank=True,
     )
 
     STATUS_CHOICES = [
         ("upcoming", "Próximo"),
         ("ongoing", "En Curso"),
-        ("completed", "Completado"),
+        ("completed", "Finalizado"),
         ("cancelled", "Cancelado"),
     ]
 
@@ -29,3 +32,52 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Participant(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    collaborator = models.BooleanField(default=False)
+    STATUS_CHOICES = [
+        ("interested", "Interesado"),
+        ("confirmed", "Confirmado"),
+        ("rejected", "Rechazado"),
+    ]
+
+    status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default="interested"
+    )
+
+    def __str__(self):
+        return self.user.username
+
+
+class Task(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="tasks",
+    )
+    assignee = models.ManyToManyField(
+        Participant,
+        related_name="tasks",
+    )
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Reminder(models.Model):
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="reminders",
+    )
+    assignee = models.ForeignKey(
+        Participant,
+        on_delete=models.CASCADE,
+    )
+    date = models.DateTimeField()
