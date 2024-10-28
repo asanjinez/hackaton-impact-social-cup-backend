@@ -58,10 +58,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks",
     )
-    assignee = models.ManyToManyField(
-        Participant,
-        related_name="tasks",
-    )
+    assignee = models.ManyToManyField(Participant, related_name="tasks", blank=True)
     name = models.CharField(max_length=200)
     description = models.TextField()
     completed = models.BooleanField(default=False)
